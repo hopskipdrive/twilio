@@ -28,6 +28,25 @@ type Message struct {
 	Uri         string    `json:"uri"`
 }
 
+type CopilotMessage struct {
+	AccountSid          string    `json:"account_sid"`
+	ApiVersion          string    `json:"api_version"`
+	Body                string    `json:"body"`
+	NumSegments         int       `json:"num_segments,string"`
+	NumMedia            int       `json:"num_media,string"`
+	DateCreated         Timestamp `json:"date_created,omitempty"`
+	DateSent            Timestamp `json:"date_sent,omitempty"`
+	DateUpdated         Timestamp `json:"date_updated,omitempty"`
+	Direction           string    `json:"direction"`
+	From                string    `json:"from"`
+	MessagingServiceSid string    `json:"messaging_service_sid"`
+	Price               Price     `json:"price,omitempty"`
+	Sid                 string    `json:"sid"`
+	Status              string    `json:"status"`
+	To                  string    `json:"to"`
+	Uri                 string    `json:"uri"`
+}
+
 func (m *Message) IsSent() bool {
 	return m.Status == "sent"
 }
@@ -39,12 +58,21 @@ type MessageParams struct {
 	// The URL of the media you wish to send out with the message. Currently support: gif, png, and jpeg.
 	MediaUrl []string
 
-	StatusCallback string
-	ApplicationSid string
+	StatusCallback      string
+	ApplicationSid      string
+	MessagingServiceSid string
 }
 
 func (p MessageParams) Validates() error {
 	if (p.Body == "") && (len(p.MediaUrl) == 0) {
+		return errors.New(`One of the "Body" or "MediaUrl" is required.`)
+	}
+
+	return nil
+}
+
+func (p MessageParams) ValidatesCopilot() error {
+	if (p.MessagingServiceSid == "") || ((p.Body == "") && (len(p.MediaUrl) == 0)) {
 		return errors.New(`One of the "Body" or "MediaUrl" is required.`)
 	}
 
@@ -70,7 +98,34 @@ func (s *MessageService) SendSMS(from, to, body string) (*Message, *Response, er
 	return s.Send(from, to, MessageParams{Body: body})
 }
 
-// Send Message with options. It's support required and optional parameters.
+// Send Copilot Message with options. Supports both required and optional parameters.
+//
+// One of these parameters is required:
+//
+//	Body     : The text of the message you want to send
+//	MediaUrl : The URL of the media you wish to send out with the message. Currently support: gif, png, and jpeg.
+//
+// This is required:
+//
+//  MessagingServiceSid : Sid for the messaging service associated with the numbers you'll use to send copilot messages.
+//
+// Optional parameters:
+//
+//	StatusCallback : A URL that Twilio will POST to when your message is processed.
+//	ApplicationSid : Twilio will POST `MessageSid` as well as other statuses to the URL in the `MessageStatusCallback` property of this application
+func (s *MessageService) SendCopilot(to string, params MessageParams) (*Message, *Response, error) {
+	err := params.ValidatesCopilot()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	v := structToUrlValues(&params)
+	v.Set("To", to)
+
+	return s.Create(v)
+}
+
+// Send Message with options. Supports both required and optional parameters.
 //
 // One of these parameters is required:
 //
