@@ -72,7 +72,11 @@ func (p MessageParams) Validates() error {
 }
 
 func (p MessageParams) ValidatesCopilot() error {
-	if (p.MessagingServiceSid == "") || ((p.Body == "") && (len(p.MediaUrl) == 0)) {
+	if p.MessagingServiceSid == "" {
+		return errors.New(`MessagingServiceSid must not be nil.`)
+	}
+
+	if (p.Body == "") && (len(p.MediaUrl) == 0) {
 		return errors.New(`One of the "Body" or "MediaUrl" is required.`)
 	}
 

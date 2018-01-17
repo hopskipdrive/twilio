@@ -86,7 +86,9 @@ func (c *Client) NewRequest(method, urlStr string, body io.Reader) (*http.Reques
 }
 
 func (c *Client) Do(req *http.Request, v interface{}) (*Response, error) {
+	log.Printf("Copilot request: %s", req)
 	resp, err := c.client.Do(req)
+	log.Printf("Copilot response: %s, error: %s", resp, err)
 	if err != nil {
 		return nil, err
 	}
