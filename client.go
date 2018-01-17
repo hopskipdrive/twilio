@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"log"
 )
 
 // A client manages communication with Twilio API
