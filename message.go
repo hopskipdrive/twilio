@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/url"
 	"strings"
-	"log"
 )
 
 type MessageService struct {
@@ -117,6 +116,7 @@ func (s *MessageService) SendCopilot(messagingServiceSid, to string, params Mess
 
 	v := structToUrlValues(&params)
 	v.Set("To", to)
+	v.Set("MessagingServiceSid", messagingServiceSid)
 
 	return s.Create(v)
 }

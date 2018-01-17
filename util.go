@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"reflect"
 	"strconv"
+	"log"
 )
 
 func CheckResponse(r *http.Response) error {
