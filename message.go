@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/url"
 	"strings"
+	"log"
 )
 
 type MessageService struct {
@@ -38,7 +39,7 @@ type CopilotMessage struct {
 	DateSent            Timestamp `json:"date_sent,omitempty"`
 	DateUpdated         Timestamp `json:"date_updated,omitempty"`
 	Direction           string    `json:"direction"`
-	From                string    `json:"from"`
+	From 								string 		`json:"from"`
 	MessagingServiceSid string    `json:"messaging_service_sid"`
 	Price               Price     `json:"price,omitempty"`
 	Sid                 string    `json:"sid"`
@@ -60,7 +61,6 @@ type MessageParams struct {
 
 	StatusCallback      string
 	ApplicationSid      string
-	MessagingServiceSid string
 }
 
 func (p MessageParams) Validates() error {
@@ -72,10 +72,6 @@ func (p MessageParams) Validates() error {
 }
 
 func (p MessageParams) ValidatesCopilot() error {
-	if p.MessagingServiceSid == "" {
-		return errors.New(`MessagingServiceSid must not be nil.`)
-	}
-
 	if (p.Body == "") && (len(p.MediaUrl) == 0) {
 		return errors.New(`One of the "Body" or "MediaUrl" is required.`)
 	}
@@ -109,15 +105,11 @@ func (s *MessageService) SendSMS(from, to, body string) (*Message, *Response, er
 //	Body     : The text of the message you want to send
 //	MediaUrl : The URL of the media you wish to send out with the message. Currently support: gif, png, and jpeg.
 //
-// This is required:
-//
-//  MessagingServiceSid : Sid for the messaging service associated with the numbers you'll use to send copilot messages.
-//
 // Optional parameters:
 //
 //	StatusCallback : A URL that Twilio will POST to when your message is processed.
 //	ApplicationSid : Twilio will POST `MessageSid` as well as other statuses to the URL in the `MessageStatusCallback` property of this application
-func (s *MessageService) SendCopilot(to string, params MessageParams) (*Message, *Response, error) {
+func (s *MessageService) SendCopilot(messagingServiceSid, to string, params MessageParams) (*Message, *Response, error) {
 	err := params.ValidatesCopilot()
 	if err != nil {
 		return nil, nil, err
@@ -190,6 +182,8 @@ func (s *MessageService) List(params MessageListParams) ([]Message, *Response, e
 		}
 	}
 	req.URL.RawQuery = q.Encode()
+
+
 
 	// Helper struct for handling the listing
 	type list struct {

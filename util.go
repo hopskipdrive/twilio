@@ -36,7 +36,7 @@ func structToUrlValues(i interface{}) url.Values {
 			}
 		}
 	}
-
+	log.Printf("structToUrlValues: %s", v)
 	return v
 }
 
